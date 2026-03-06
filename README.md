@@ -254,6 +254,12 @@ AI-powered document analysis that reads, summarises, and extracts key insights f
 
 ---
 
+
+
+---
+
+<div align="center">
+
 ### 🤝 Open to Collaborate On
 
 [![AI / ML](https://img.shields.io/badge/🤖_AI_%2F_ML_Projects-818CF8?style=for-the-badge)](https://github.com/topics/machine-learning)
