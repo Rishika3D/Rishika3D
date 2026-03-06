@@ -1,0 +1,46 @@
+name: 🌟 Rimuru Tamagotchi
+
+on:
+  issues:
+    types: [opened]
+  schedule:
+    - cron: "0 */6 * * *"   # hunger decays every 6 hours automatically
+
+jobs:
+  update-pet:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.issue.title, 'tamagotchi|') || github.event_name == 'schedule'
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Update Rimuru's stats
+        run: |
+          python .github/scripts/tamagotchi.py \
+            "${{ github.event.issue.title || '' }}" \
+            "${{ github.event_name }}"
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "rimuru-bot@github.com"
+          git config --local user.name "Rimuru Bot 🌟"
+          git add README.md pet-state.json
+          git diff --quiet && git diff --staged --quiet || \
+            git commit -m "🌟 Rimuru's stats updated!"
+          git push
+
+      - name: Close issue with reply
+        if: github.event_name == 'issues'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue close ${{ github.event.issue.number }} \
+            --comment "✨ Done! Rimuru's stats have been updated. Check out the profile! 🌟"
