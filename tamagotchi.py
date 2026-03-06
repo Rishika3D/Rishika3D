@@ -14,11 +14,11 @@ from datetime import datetime, timezone
 README_PATH   = "README.md"
 STATE_PATH    = "pet-state.json"
 
-# ── GIF URLs (swap these for any pixel-art / anime GIFs you like) ─────────────
+# ── SVG asset URLs (hosted in profile repo /assets/) ──────────────────────────
 GIFS = {
-    "happy":    "https://user-images.githubusercontent.com/74038190/212284100-561aa473-3905-4a80-b561-0d28506553ee.gif",
-    "hungry":   "https://user-images.githubusercontent.com/74038190/212284145-bf2c01a8-c448-4f1a-b911-996b2a36c8d3.gif",
-    "sleeping": "https://user-images.githubusercontent.com/74038190/212284158-e840e285-664b-44d7-b79b-e264b5e54825.gif",
+    "happy":    "https://raw.githubusercontent.com/Rishika3D/Rishika3D/main/assets/slime-happy.svg",
+    "hungry":   "https://raw.githubusercontent.com/Rishika3D/Rishika3D/main/assets/slime-hungry.svg",
+    "sleeping": "https://raw.githubusercontent.com/Rishika3D/Rishika3D/main/assets/slime-sleeping.svg",
 }
 
 DEFAULT_STATE = {
@@ -98,7 +98,7 @@ def get_gif_key(hunger):
     if hunger >= 20: return "hungry"
     return "sleeping"
 
-def progress_bar(value, max_val=100, filled="🟧", empty="⬛", segments=10):
+def progress_bar(value, max_val=100, filled="🟪", empty="⬛", segments=10):
     filled_count = round((value / max_val) * segments)
     return filled * filled_count + empty * (segments - filled_count)
 
@@ -110,31 +110,34 @@ def build_stats_block(state):
     mood     = get_mood(hunger)
     last_fed = time_ago(state["lastFed"])
     h_bar    = progress_bar(hunger)
-    xp_bar   = progress_bar(xp, filled="🟪")
+    xp_bar   = progress_bar(xp)
 
-    return (
-        f"<!-- pet-stats -->\n"
-        f"| 😋 Hunger | ⚔️ Level | ✨ XP | 😊 Mood |\n"
-        f"|:---:|:---:|:---:|:---:|\n"
-        f"| {h_bar} `{hunger}/100` | **{level}** | {xp_bar} `{xp}/100` | {mood} |\n"
-        f"\n"
-        f"> 🍱 Last fed: **{last_fed}**\n"
-        f"<!-- pet-stats -->"
-    )
+    lines = [
+        "<!-- pet-stats -->",
+        "```",
+        f"  ⚔️  Level {level}   ·   {mood}",
+        f"  ─────────────────────────────────────────────────",
+        f"  Hunger   {h_bar}  {hunger}/100",
+        f"  XP       {xp_bar}  {xp}/100",
+        f"  Fed      {last_fed}",
+        "```",
+        "<!-- pet-stats -->",
+    ]
+    return "\n".join(lines)
 
 def update_readme(state):
     with open(README_PATH) as f:
         content = f.read()
 
-    # Swap GIF based on hunger level
+    # Swap SVG asset based on hunger level
     gif_url = GIFS[get_gif_key(state["hunger"])]
     content = re.sub(
         r"<!-- pet-gif -->.*?<!-- pet-gif -->",
-        f'<!-- pet-gif --><img src="{gif_url}" width="180" /><!-- pet-gif -->',
+        f'<!-- pet-gif -->\n<img src="{gif_url}" width="200" height="200" />\n<!-- pet-gif -->',
         content, flags=re.DOTALL,
     )
 
-    # Update stats table
+    # Update stats code block
     content = re.sub(
         r"<!-- pet-stats -->.*?<!-- pet-stats -->",
         build_stats_block(state),
